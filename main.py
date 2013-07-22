@@ -126,11 +126,17 @@ def printGenerosityLeaderboard(normaliseScores=False):
 		score = u.generosity
 		if normaliseScores:
 			score = calcNormalisedUserGenerosity(u)
-		scores.extend([(score, u.name)])
+		# Basic score (given/received) for reference
+		basicScore = 0
+		if u.totalPointsReceived > 0:
+			print("Given: %d, Received: %d" % (u.totalPointsGiven, u.totalPointsReceived))
+			basicScore = u.totalPointsGiven/u.totalPointsReceived
+
+		scores.extend([(score, u.name, basicScore)])
 	scores.sort(reverse=True)
 	print("\nGenerosity Leaderboard: ")
 	for n in range(0,len(scores)):
-		print("%d. %s: %f" % (n+1, scores[n][1], scores[n][0]))
+		print("%d. %s: %f (rec/giv: %f)" % (n+1, scores[n][1], scores[n][0], scores[n][2]))
 
 
 def transfer(sender, recipient, points):
@@ -163,7 +169,7 @@ def performBasicTransactions(users):
 
 def performUnevenTransactions(users):
 	print("Performing uneven transactions...")
-	# 0 gives 1 10%
+	# 0 gives 1 30%
 	transfer(users[0], users[1], 3)
 	# 3 gives 0 20%, 3 gives 2 10%
 	transfer(users[3], users[0], 2)
@@ -173,6 +179,11 @@ def printTransactionLog():
 	print("\nTransaction Log: ")
 	for t in transactionLog:
 		t.printTransaction()
+
+def printUserBalances():
+	print("\nUsers' Points: ")
+	for u in users:
+		print("%s: %d" % (u.name, u.points))
 
 # BEGIN
 users = createUsers()
@@ -186,5 +197,10 @@ printAllUsers(users)
 printAllUsers(users)
 
 printTransactionLog()
+
+# User 1 gives away all points to user 2
+transfer(users[1], users[2], users[0].points)
+
+printUserBalances()
 
 printGenerosityLeaderboard(True)

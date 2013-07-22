@@ -15,7 +15,11 @@ class Transaction():
 		self.sender.points -= self.amount
 		self.recipient.points += self.amount
 		self.sender.generosity += self.generosity
+		# Track points given/received, for reference
+		self.sender.totalPointsGiven += self.amount
+		self.recipient.totalPointsReceived += self.amount
 		self.executed = True
+
 
 	def printTransaction(self):
 		print("%s \tto \t%s \t(%d) \t Funds pre/post: (%d/%d, %d/%d) Generosity: %f" 

@@ -6,6 +6,8 @@ class User():
 		self.id = uuid.uuid4()
 		self.points = points
 		self.generosity = 0
+		self.totalPointsGiven = 0
+		self.totalPointsReceived = 0
 
 	def printInfo(self):
 		print("  User name: ", self.name)
