@@ -74,39 +74,62 @@ def calcTransactionGenerosity(t):
 	charityScore = 1 - min( (t.recipientFundsPre/(totalUserbasePoints/len(users))), 1)
 
 	# Diversity
-	diversityWeight = 5
+	diversityWeight = 10
 	diversityScore = 1 - calcFavoratism(t.sender, t.recipient)
 
 	# Recipient Generosity
-	rGenWeight = 2
+	rGenWeight = 3
 	avgUserGenerosity, totalGenerosity = calcAverageGenerosity()
 	rGenScore = 0
 	if totalGenerosity > 0:
 		rGenScore = 0.5 + (0.5 * ((t.recipient.generosity-avgUserGenerosity)/totalGenerosity))
 
 	# Direct Reciprocity
-	dRecipWeight = 3
+	dRecipWeight = 6
 	dRecipScore = 1 - calcFavoratism(t.recipient, t.sender)
 
 	# Indirect Reciprocity
-	iRecipWeight = 2
+	iRecipWeight = 3
 	iRecipScore = 1 - calcAllMutualFavourings(t.recipient, t.sender)
 
-	# Combine components
-	generosity = tMag * (
-							(charityWeight*charityScore + 
-							diversityWeight*diversityScore + 
-							rGenWeight*rGenScore + 
-							dRecipWeight*dRecipScore +
-							iRecipWeight*iRecipScore) 
-							/ 
-							(charityWeight + 
-							diversityWeight +
-							rGenWeight +
-							dRecipWeight +
-							iRecipWeight)
-						)
-	return generosity
+	sumOfWeights = charityWeight + diversityWeight + rGenWeight + dRecipWeight + iRecipWeight
+	generosity = 0
+	if sumOfWeights > 0:
+		# Combine components
+		generosity = tMag * (
+								(charityWeight*charityScore + 
+								diversityWeight*diversityScore + 
+								rGenWeight*rGenScore + 
+								dRecipWeight*dRecipScore +
+								iRecipWeight*iRecipScore) 
+								/ 
+								sumOfWeights
+							)
+	print("... calculated generosity as: ", generosity)
+	print("\tcharity: ", charityWeight*charityScore)
+	print("\tdiversity: ", diversityWeight*diversityScore)
+	print("\trGenWeight: ", rGenWeight*rGenScore)
+	print("\tdRecipWeight: ", dRecipWeight*dRecipScore)
+	print("\tiRecipWeight: ", iRecipWeight*iRecipScore)
+	t.generosity = generosity
+
+def calcNormalisedUserGenerosity(user):
+	# For progress bars
+	avgGenerosity, totalGenerosity = calcAverageGenerosity()
+	score = 0.5 + (0.5 * ((user.generosity - avgGenerosity)/totalGenerosity))
+	return score
+
+
+def printGenerosityLeaderboard():
+	scores = []
+	for u in users:
+		score = u.generosity
+		scores.extend([(score, u.name)])
+	scores.sort(reverse=True)
+	print("\nGenerosity Leaderboard: ")
+	for n in range(0,len(scores)):
+		print("%d. %s: %f" % (n+1, scores[n][1], scores[n][0]))
+
 
 def transfer(sender, recipient, points):
 	# Restrict to integer transfers
@@ -118,7 +141,7 @@ def transfer(sender, recipient, points):
 	# Create transaction
 	transaction = Transaction.Transaction(sender, recipient, points)
 	# Generosity
-	generosity = calcTransactionGenerosity(transaction)
+	calcTransactionGenerosity(transaction)
 	# send funds
 	if not transaction.executed:
 		transaction.execute()
@@ -146,14 +169,7 @@ def performUnevenTransactions(users):
 def printTransactionLog():
 	print("\nTransaction Log: ")
 	for t in transactionLog:
-		print("%s \tto \t%s \t(%d) \t Funds pre/post: (%d/%d, %d/%d)" 
-			% (t.sender.name, 
-				t.recipient.name, 
-				t.amount, 
-				t.senderFundsPre, 
-				t.senderFundsPre-t.amount,
-				t.recipientFundsPre, 
-				t.recipientFundsPre+t.amount))
+		t.printTransaction()
 
 # BEGIN
 users = createUsers()
@@ -163,7 +179,9 @@ transactionLog = []
 performBasicTransactions(users)
 printAllUsers(users)
 
-performUnevenTransactions(users)
+#performUnevenTransactions(users)
 printAllUsers(users)
 
 printTransactionLog()
+
+printGenerosityLeaderboard()
