@@ -20,6 +20,94 @@ def printAllUsers(users):
 	for user in users:
 		user.printInfo()
 
+def totalEconomySize():
+	totalPoints = 0
+	for u in users:
+		totalPoints += u.points
+	return totalPoints
+
+def calcFavoratism(sender, recipient):
+	transactionsToRecipient = 0
+	totalTransactions = 0
+	totalPotentialRecipients = len(users)
+	# Scan logs
+	for t in transactionLog:
+		if t.sender == sender:
+			totalTransactions += 1
+			if t.recipient == recipient:
+				transactionsToRecipient += 1
+	# Calculate
+	fav = 0
+	if totalTransactions > 0:
+		avgTransactions = totalTransactions/totalPotentialRecipients
+		differenceFromAvg = transactionsToRecipient - avgTransactions
+		fav = 0.5 + (0.5 * (differenceFromAvg/totalTransactions))
+	return fav
+
+def calcAverageGenerosity():
+	totalGenerosity = 0
+	for u in users:
+		totalGenerosity += u.generosity
+	return totalGenerosity/len(users), totalGenerosity
+
+def calculateMutualFavouring(userOne, userTwo):
+	return calcFavoratism(userOne, userTwo) * calcFavoratism(userTwo, userOne)
+
+def calcAllMutualFavourings(userOne, ignoredUser=False):
+	mutualFavouringScore = 0
+	totalComparisons = 0
+	for u in users:
+		if not u == userOne:
+			# not self
+			if not (ignoredUser and u == ignoredUser) :
+				# not the ignored user
+					mutualFavouringScore += calculateMutualFavouring(userOne, u)
+					totalComparisons += 1					
+	return mutualFavouringScore/totalComparisons
+
+def calcTransactionGenerosity(t):
+	# Magnitude
+	tMag = t.amount/t.senderFundsPre
+	# Charity
+	charityWeight = 1
+	totalUserbasePoints = totalEconomySize()
+	charityScore = 1 - min( (t.recipientFundsPre/(totalUserbasePoints/len(users))), 1)
+
+	# Diversity
+	diversityWeight = 5
+	diversityScore = 1 - calcFavoratism(t.sender, t.recipient)
+
+	# Recipient Generosity
+	rGenWeight = 2
+	avgUserGenerosity, totalGenerosity = calcAverageGenerosity()
+	rGenScore = 0
+	if totalGenerosity > 0:
+		rGenScore = 0.5 + (0.5 * ((t.recipient.generosity-avgUserGenerosity)/totalGenerosity))
+
+	# Direct Reciprocity
+	dRecipWeight = 3
+	dRecipScore = 1 - calcFavoratism(t.recipient, t.sender)
+
+	# Indirect Reciprocity
+	iRecipWeight = 2
+	iRecipScore = 1 - calcAllMutualFavourings(t.recipient, t.sender)
+
+	# Combine components
+	generosity = tMag * (
+							(charityWeight*charityScore + 
+							diversityWeight*diversityScore + 
+							rGenWeight*rGenScore + 
+							dRecipWeight*dRecipScore +
+							iRecipWeight*iRecipScore) 
+							/ 
+							(charityWeight + 
+							diversityWeight +
+							rGenWeight +
+							dRecipWeight +
+							iRecipWeight)
+						)
+	return generosity
+
 def transfer(sender, recipient, points):
 	# Restrict to integer transfers
 	if not isinstance(points, int):
@@ -29,6 +117,8 @@ def transfer(sender, recipient, points):
 		return False
 	# Create transaction
 	transaction = Transaction.Transaction(sender, recipient, points)
+	# Generosity
+	generosity = calcTransactionGenerosity(transaction)
 	# send funds
 	if not transaction.executed:
 		transaction.execute()
@@ -56,7 +146,14 @@ def performUnevenTransactions(users):
 def printTransactionLog():
 	print("\nTransaction Log: ")
 	for t in transactionLog:
-		print("%s \tto \t%s \t(%d) \t Previous funds: (%d, %d)" % (t.sender.name, t.recipient.name, t.amount, t.senderFundsPre, t.recipientFundsPre))
+		print("%s \tto \t%s \t(%d) \t Funds pre/post: (%d/%d, %d/%d)" 
+			% (t.sender.name, 
+				t.recipient.name, 
+				t.amount, 
+				t.senderFundsPre, 
+				t.senderFundsPre-t.amount,
+				t.recipientFundsPre, 
+				t.recipientFundsPre+t.amount))
 
 # BEGIN
 users = createUsers()
@@ -65,6 +162,7 @@ printAllUsers(users)
 transactionLog = []
 performBasicTransactions(users)
 printAllUsers(users)
+
 performUnevenTransactions(users)
 printAllUsers(users)
 

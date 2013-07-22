@@ -1,5 +1,3 @@
-import math
-import random
 import uuid
 
 class User():
@@ -7,8 +5,10 @@ class User():
 		self.name = userName
 		self.id = uuid.uuid4()
 		self.points = points
+		self.generosity = 0
 
 	def printInfo(self):
 		print("  User name: ", self.name)
 		print("    ID: ", self.id)
-		print("    Current points: ", self.points)
+		print("    Points: ", self.points)
+		print("    Generosity: ", self.generosity)

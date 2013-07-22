@@ -10,7 +10,6 @@ class Transaction():
 		self.recipientFundsPre = recipient.points
 		self.executed = False
 
-
 	def execute(self):
 		self.sender.points -= self.amount
 		self.recipient.points += self.amount
