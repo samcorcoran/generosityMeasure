@@ -42,6 +42,7 @@ def calcFavoratism(sender, recipient):
 		avgTransactions = totalTransactions/totalPotentialRecipients
 		differenceFromAvg = transactionsToRecipient - avgTransactions
 		fav = 0.5 + (0.5 * (differenceFromAvg/totalTransactions))
+	print("Calculated %s's favouratism of %s as: %f" % (sender.name, recipient.name, fav))
 	return fav
 
 def calcAverageGenerosity():
@@ -119,11 +120,12 @@ def calcNormalisedUserGenerosity(user):
 	score = 0.5 + (0.5 * ((user.generosity - avgGenerosity)/totalGenerosity))
 	return score
 
-
-def printGenerosityLeaderboard():
+def printGenerosityLeaderboard(normaliseScores=False):
 	scores = []
 	for u in users:
 		score = u.generosity
+		if normaliseScores:
+			score = calcNormalisedUserGenerosity(u)
 		scores.extend([(score, u.name)])
 	scores.sort(reverse=True)
 	print("\nGenerosity Leaderboard: ")
@@ -139,6 +141,7 @@ def transfer(sender, recipient, points):
 	if not (points > 0 or points <= sender.points):
 		return False
 	# Create transaction
+	print("Transferring %d points from %s(%d) to %s(%d)" % (points, sender.name, sender.points, recipient.name, recipient.points))
 	transaction = Transaction.Transaction(sender, recipient, points)
 	# Generosity
 	calcTransactionGenerosity(transaction)
@@ -184,4 +187,4 @@ printAllUsers(users)
 
 printTransactionLog()
 
-printGenerosityLeaderboard()
+printGenerosityLeaderboard(True)
