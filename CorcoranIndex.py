@@ -27,9 +27,30 @@ def generateFakeTransactionLog(n):
 	return log
 
 # Great a fake transaction log
-numTransactions = 50
+numTransactions = 10
 transactionLog = generateFakeTransactionLog(numTransactions)
 
 # Print transaction log
 for entry in transactionLog:
+	print(entry)
+
+# Create a dictionary of username keys and generosity values
+def calculateGenerosities(tLog):
+	print("Calculating generosities")
+	generosities = dict()
+	for t in tLog:
+		generosity = 0
+		# Add generosity to existing user entry
+		if t["from"] in generosities:			
+			print(generosities)
+			generosities[t["from"]] += generosity
+		# Add new user to dictionary
+		else:
+			generosities[t["from"]] = generosity
+
+	return generosities
+
+generosities = calculateGenerosities(transactionLog)
+
+for entry in generosities:
 	print(entry)
