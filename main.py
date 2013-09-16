@@ -26,7 +26,7 @@ def totalEconomySize():
 		totalPoints += u.points
 	return totalPoints
 
-def calcFavoratism(sender, recipient):
+def calcFavouritism(sender, recipient):
 	transactionsToRecipient = 0
 	totalTransactions = 0
 	totalPotentialRecipients = len(users)
@@ -52,7 +52,7 @@ def calcAverageGenerosity():
 	return totalGenerosity/len(users), totalGenerosity
 
 def calculateMutualFavouring(userOne, userTwo):
-	return calcFavoratism(userOne, userTwo) * calcFavoratism(userTwo, userOne)
+	return calcFavouritism(userOne, userTwo) * calcFavouritism(userTwo, userOne)
 
 def calcAllMutualFavourings(userOne, ignoredUser=False):
 	mutualFavouringScore = 0
@@ -76,7 +76,7 @@ def calcTransactionGenerosity(t):
 
 	# Diversity
 	diversityWeight = 10
-	diversityScore = 1 - calcFavoratism(t.sender, t.recipient)
+	diversityScore = 1 - calcFavouritism(t.sender, t.recipient)
 
 	# Recipient Generosity
 	rGenWeight = 3
@@ -87,7 +87,7 @@ def calcTransactionGenerosity(t):
 
 	# Direct Reciprocity
 	dRecipWeight = 6
-	dRecipScore = 1 - calcFavoratism(t.recipient, t.sender)
+	dRecipScore = 1 - calcFavouritism(t.recipient, t.sender)
 
 	# Indirect Reciprocity
 	iRecipWeight = 3
