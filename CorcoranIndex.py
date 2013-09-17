@@ -1,3 +1,4 @@
+__version__ = 1.1
 
 # Create a dictionary of username keys and generosity values
 def calculateGenerosities(tLog):
