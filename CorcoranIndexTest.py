@@ -37,8 +37,9 @@ transactionLog = generateFakeTransactionLog(numTransactions)
 # for entry in transactionLog:
 # 	print(entry)
 
-generosities = CorcoranIndex.calculateGenerosities(transactionLog)
+generosities, transactionCounts = CorcoranIndex.calculateGenerosities(transactionLog)
 
 totalGenerosity = sum(generosities.values())
 for user in generosities.keys():
-	print("%s: \t%f" % (user, generosities[user]/float(totalGenerosity)))
+	avgGenerosity = 'NA' if not user in transactionCounts else  generosities[user]/float(transactionCounts[user])
+	print("%s: \t%f (Average generosity: %s)" % (user, generosities[user]/float(totalGenerosity), avgGenerosity))
