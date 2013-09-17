@@ -1,16 +1,16 @@
 
 # Create a dictionary of username keys and generosity values
 def calculateGenerosities(tLog):
-	print("Calculating generosities")
+	#print("Calculating generosities")
 	generosities = dict()
 	tAmountHistory = dict()
 	tPairCountHistory = dict()
 	tSoloCountHistory = dict()
 	for t in tLog:
-		print("NEXT TRANSACTION")
-		print(t)
+		#print("NEXT TRANSACTION")
+		#print(t)
 		generosity = calculateTransactionGenerosity(t, tAmountHistory, tPairCountHistory, tSoloCountHistory, generosities)
-		print("Generosity: " + str(generosity))
+		#print("Generosity: " + str(generosity))
 
 		sender = t["from"]
 		recipient = t["to"]
@@ -54,17 +54,17 @@ def calculateGenerosities(tLog):
 def calculateTransactionGenerosity(t, tAmountHistory, tPairCountHistory, tSoloCountHistory, generosities, charityWeight=1, diversityWeight=10, rGenWeight=3, dRecipWeight=6, iRecipWeight=3):
 	# Magnitude
 	tMag = t["amount"]/float(t["fromPoints"])
-	print("tMag: " + str(tMag))
+	#print("tMag: " + str(tMag))
 
 	# Charity
 	charityWeight = 1
 	charityScore = 1 - min( (t["toPoints"] / float( (t["economySize"]/float(t["totalUsers"])) )), 1)
-	print("Charity score: " + str(charityScore))
+	#print("Charity score: " + str(charityScore))
 
 	# Diversity
 	diversityWeight = 10
 	diversityScore = 1 - calcFavouritism(t["from"], t["to"], tAmountHistory, tPairCountHistory, tSoloCountHistory, t["totalUsers"])
-	print("Diversity score: " + str(diversityScore))
+	#print("Diversity score: " + str(diversityScore))
 
 	# Recipient Generosity
 	rGenWeight = 3
@@ -72,12 +72,12 @@ def calculateTransactionGenerosity(t, tAmountHistory, tPairCountHistory, tSoloCo
 	rGenScore = 0.5
 	if totalGenerosity > 0 and t["to"] in generosities:
 		rGenScore = 0.5 + (0.5 * float((generosities[t["to"]]-avgUserGenerosity)/float(totalGenerosity)))
-	print("rGen score: " + str(rGenScore))
+	#print("rGen score: " + str(rGenScore))
 
 	# Direct Reciprocity ('to' and 'from' are switched for favouritism calculation)
 	dRecipWeight = 6
 	dRecipScore = 1 - calcFavouritism(t["to"], t["from"], tAmountHistory, tPairCountHistory, tSoloCountHistory, t["totalUsers"])
-	print("dRecipScore: " + str(dRecipScore))
+	#print("dRecipScore: " + str(dRecipScore))
 
 	# NOTE: This was not implemented as it may simply replicate considerations of recipient generosity
 	# Indirect Reciprocity
