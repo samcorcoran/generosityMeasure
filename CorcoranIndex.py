@@ -7,7 +7,7 @@ def calculateGenerosities(tLog):
 	tPairCountHistory = dict()
 	tSoloCountHistory = dict()
 	for t in tLog:
-		generosity = calculateTransactionGenerosity(t, tAmountHistory, tPairCountHistory, tSoloCountHistory)
+		generosity = calculateTransactionGenerosity(t, tAmountHistory, tPairCountHistory, tSoloCountHistory, generosities)
 
 		# Add generosity to existing user entry
 		if t["from"] in generosities:			
@@ -45,7 +45,7 @@ def calculateGenerosities(tLog):
 			tSoloCountHistory[key] += 1
 	return generosities
 
-def calculateTransactionGenerosity(t, tAmountHistory, tPairCountHistory, tSoloCountHistory, charityWeight=1, diversityWeight=10, rGenWeight=3, dRecipWeight=6, iRecipWeight=3):
+def calculateTransactionGenerosity(t, tAmountHistory, tPairCountHistory, tSoloCountHistory, generosities, charityWeight=1, diversityWeight=10, rGenWeight=3, dRecipWeight=6, iRecipWeight=3):
 	# Magnitude
 	tMag = t["amount"]/t["fromPoints"]
 
@@ -59,10 +59,10 @@ def calculateTransactionGenerosity(t, tAmountHistory, tPairCountHistory, tSoloCo
 
 	# Recipient Generosity
 	rGenWeight = 3
-	avgUserGenerosity, totalGenerosity = calcAverageGenerosity()
-	rGenScore = 0
-	if totalGenerosity > 0:
-		rGenScore = 0.5 + (0.5 * ((t.recipient.generosity-avgUserGenerosity)/totalGenerosity))
+	avgUserGenerosity, totalGenerosity = calcAverageGenerosity(generosities)
+	rGenScore = 0.5
+	if totalGenerosity > 0 and t["to"] in generosities:
+		rGenScore = 0.5 + (0.5 * ((generosities[t["to"]]-avgUserGenerosity)/totalGenerosity))
 
 	# Direct Reciprocity
 	dRecipWeight = 6
@@ -105,3 +105,9 @@ def calcFavouritism(sender, recipient, tAmountHistory, tPairCountHistory, tSoloC
 		differenceFromAvg = transactionsToRecipient - avgTransactionsPerRecipient
 		fav = 0.5 + (0.5 * (differenceFromAvg/totalTransactions))
 	return fav
+
+def calcAverageGenerosity(generosities):
+	if generosities:
+		totalGenerosity = sum(generosities.values())
+		return totalGenerosity/len(generosities), totalGenerosity
+	return 0, 0
