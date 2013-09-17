@@ -12,14 +12,26 @@ def calculateGenerosities(tLog):
 		recipient = t["to"]
 
 		# Validate transaction, wangbot is given exception
-		if t["fromPoints"] < t["amount"] and not sender == 'wangbot' :
+		if not sender == 'wangbot' and currentPoints[sender] < t["amount"]:
 			continue
 
 		# If this was a transaction between non-wangbot users, calculate generosity and update histories
 		if not sender == 'wangbot' and not recipient == 'wangbot':
+			# Add new users to those known
+			if not sender in currentPoints:
+				currentPoints[sender] = 0
+			if not sender in generosities:
+				generosities[sender] = 0
+			if not recipient in currentPoints:
+				currentPoints[recipient] = 0
+			if not recipient in generosities:
+				generosities[recipient] = 0
+
 			#print("NEXT TRANSACTION")
 			#print(t)
-			generosity = calculateTransactionGenerosity(t, tAmountHistory, tPairCountHistory, tSoloCountHistory, generosities)
+			economySize = sum(currentPoints.values())
+			totalUsers = len(currentPoints)
+			generosity = calculateTransactionGenerosity(t, currentPoints, economySize, totalUsers, tAmountHistory, tPairCountHistory, tSoloCountHistory, generosities)
 			#print("Generosity: " + str(generosity))
 
 			# Add generosity to existing user entry
@@ -58,44 +70,49 @@ def calculateGenerosities(tLog):
 				tSoloCountHistory[key] += 1
 				# Update information about user points
 
-		# Grant points to recipient
-		if not recipient in currentPoints:
-			currentPoints[recipient] = 0
-		currentPoints[recipient] += t["amount"]
 		# Remove points from sender, unless is wangbot
 		if not sender == 'wangbot':
 			if not sender in currentPoints:
 				currentPoints[sender] = 0
 			currentPoints[sender] -= t["amount"]
+		# Grant points to recipient, unless is wangbot
+		if not recipient == 'wangbot':
+			if not recipient in currentPoints:
+				currentPoints[recipient] = 0
+			currentPoints[recipient] += t["amount"]
 
+	#print(currentPoints)
 	return generosities
 
-def calculateTransactionGenerosity(t, tAmountHistory, tPairCountHistory, tSoloCountHistory, generosities, charityWeight=1, diversityWeight=10, rGenWeight=3, dRecipWeight=6, iRecipWeight=3):
+def calculateTransactionGenerosity(t, currentPoints, economySize, totalUsers, tAmountHistory, tPairCountHistory, tSoloCountHistory, generosities, charityWeight=1, diversityWeight=10, rGenWeight=3, dRecipWeight=6, iRecipWeight=3):
+	sender = t["from"]
+	recipient = t["to"]
+
 	# Magnitude
-	tMag = t["amount"]/float(t["fromPoints"])
+	tMag = t["amount"]/float(currentPoints[sender])
 	#print("tMag: " + str(tMag))
 
 	# Charity
 	charityWeight = 1
-	charityScore = 1 - min( (t["toPoints"] / float( (t["economySize"]/float(t["totalUsers"])) )), 1)
+	charityScore = 1 - min( (currentPoints[recipient] / float( (economySize/float(totalUsers)) )), 1)
 	#print("Charity score: " + str(charityScore))
 
 	# Diversity
 	diversityWeight = 10
-	diversityScore = 1 - calcFavouritism(t["from"], t["to"], tAmountHistory, tPairCountHistory, tSoloCountHistory, t["totalUsers"])
+	diversityScore = 1 - calcFavouritism(sender, recipient, tAmountHistory, tPairCountHistory, tSoloCountHistory, totalUsers)
 	#print("Diversity score: " + str(diversityScore))
 
 	# Recipient Generosity
 	rGenWeight = 3
 	avgUserGenerosity, totalGenerosity = calcAverageGenerosity(generosities)
 	rGenScore = 0.5
-	if totalGenerosity > 0 and t["to"] in generosities:
-		rGenScore = 0.5 + (0.5 * float((generosities[t["to"]]-avgUserGenerosity)/float(totalGenerosity)))
+	if totalGenerosity > 0 and recipient in generosities:
+		rGenScore = 0.5 + (0.5 * float((generosities[recipient]-avgUserGenerosity)/float(totalGenerosity)))
 	#print("rGen score: " + str(rGenScore))
 
 	# Direct Reciprocity ('to' and 'from' are switched for favouritism calculation)
 	dRecipWeight = 6
-	dRecipScore = 1 - calcFavouritism(t["to"], t["from"], tAmountHistory, tPairCountHistory, tSoloCountHistory, t["totalUsers"])
+	dRecipScore = 1 - calcFavouritism(recipient, sender, tAmountHistory, tPairCountHistory, tSoloCountHistory, totalUsers)
 	#print("dRecipScore: " + str(dRecipScore))
 
 	# NOTE: This was not implemented as it may simply replicate considerations of recipient generosity

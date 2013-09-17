@@ -5,9 +5,7 @@ import CorcoranIndex
 # Creates a list of dictionaries, each containing a transaction
 def generateFakeTransactionLog(n):
 	log = []
-	users = {'Sam': 10, 'Will': 10, 'Ben': 10, 'Andy': 10, 'wangbot': 1}
-	economySize = 40
-	totalUsers = 4
+	users = {'Sam': 0, 'Will': 0, 'Ben': 0, 'Andy': 0, 'wangbot': 1}
 	for i in xrange(n):
 		# Pick a 'from' user who has at least some points
 		fromUser = random.choice(users.keys())
@@ -20,11 +18,11 @@ def generateFakeTransactionLog(n):
 			#print("Picking a to")
 			toUser = random.choice(users.keys())
 		# Determine the size of the transaction
-		transactionAmount = 1
+		transactionAmount = random.randint(1,20)
 		if not fromUser == 'wangbot':
 			transactionAmount = random.randint(1, users[fromUser])
 		#print("Transaction amount: " + str(transactionAmount))
-		log.append({'from': fromUser, 'fromPoints': users[fromUser], 'to': toUser, 'toPoints': users[toUser], 'amount': transactionAmount, 'economySize': economySize, 'totalUsers': totalUsers})
+		log.append({'from': fromUser, 'to': toUser, 'amount': transactionAmount})
 		# Updates amount
 		if fromUser != 'wangbot':
 			users[fromUser] -= transactionAmount
@@ -32,7 +30,7 @@ def generateFakeTransactionLog(n):
 	return log
 
 # Great a fake transaction log
-numTransactions = 50
+numTransactions = 100
 transactionLog = generateFakeTransactionLog(numTransactions)
 
 # Print transaction log
