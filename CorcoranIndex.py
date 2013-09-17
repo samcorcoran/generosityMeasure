@@ -7,6 +7,10 @@ def calculateGenerosities(tLog):
 	tPairCountHistory = dict()
 	tSoloCountHistory = dict()
 	for t in tLog:
+		# Validate transaction
+		if t["fromPoints"] < t["amount"] and not t["from"] == 'wangbot' :
+			continue
+
 		#print("NEXT TRANSACTION")
 		#print(t)
 		generosity = calculateTransactionGenerosity(t, tAmountHistory, tPairCountHistory, tSoloCountHistory, generosities)
