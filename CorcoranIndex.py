@@ -2,57 +2,72 @@
 # Create a dictionary of username keys and generosity values
 def calculateGenerosities(tLog):
 	#print("Calculating generosities")
+	currentPoints = dict()
 	generosities = dict()
 	tAmountHistory = dict()
 	tPairCountHistory = dict()
 	tSoloCountHistory = dict()
 	for t in tLog:
-		# Validate transaction
-		if t["fromPoints"] < t["amount"] and not t["from"] == 'wangbot' :
-			continue
-
-		#print("NEXT TRANSACTION")
-		#print(t)
-		generosity = calculateTransactionGenerosity(t, tAmountHistory, tPairCountHistory, tSoloCountHistory, generosities)
-		#print("Generosity: " + str(generosity))
-
 		sender = t["from"]
 		recipient = t["to"]
 
-		# Add generosity to existing user entry
-		if sender in generosities:			
-			generosities[sender] += generosity
-		# Or add new user to dictionary
-		else:
-			generosities[sender] = generosity
+		# Validate transaction, wangbot is given exception
+		if t["fromPoints"] < t["amount"] and not sender == 'wangbot' :
+			continue
 
-		# Update transaction amount histories
-		if not sender in tAmountHistory:
+		# If this was a transaction between non-wangbot users, calculate generosity and update histories
+		if not sender == 'wangbot' and not recipient == 'wangbot':
+			#print("NEXT TRANSACTION")
+			#print(t)
+			generosity = calculateTransactionGenerosity(t, tAmountHistory, tPairCountHistory, tSoloCountHistory, generosities)
+			#print("Generosity: " + str(generosity))
+
+			# Add generosity to existing user entry
+			if sender in generosities:			
+				generosities[sender] += generosity
+			# Or add new user to dictionary
+			else:
+				generosities[sender] = generosity
+
+			# Update transaction amount histories
+			if not sender in tAmountHistory:
+				# Add new sender to history dict
+				tAmountHistory[sender] = dict()
+			# Add new recipient to dictionary, with list containing an entry for total transaction value and count
+			if not recipient in tAmountHistory[sender]:
+				tAmountHistory[sender][recipient] = 0
+			# Increase total amount sent and transaction counter
+			tAmountHistory[sender][recipient] += t["amount"]
+
+			# Update paired transaction counts
+			key = (sender, recipient)
 			# Add new sender to history dict
-			tAmountHistory[sender] = dict()
-		# Add new recipient to dictionary, with list containing an entry for total transaction value and count
-		if not recipient in tAmountHistory[sender]:
-			tAmountHistory[sender][recipient] = 0
-		# Increase total amount sent and transaction counter
-		tAmountHistory[sender][recipient] += t["amount"]
+			if not key in tPairCountHistory:
+				tPairCountHistory[key] = 1
+			# Or increment an existing counter
+			else:
+				tPairCountHistory[key] += 1
 
-		# Update paired transaction counts
-		key = (sender, recipient)
-		# Add new sender to history dict
-		if not key in tPairCountHistory:
-			tPairCountHistory[key] = 1
-		# Or increment an existing counter
-		else:
-			tPairCountHistory[key] += 1
+			# Update solo transaction counts
+			# Add new sender to dict
+			key = sender
+			if not sender in tSoloCountHistory:
+				tSoloCountHistory[key] = 1
+			# Or increment an existing counter
+			else:
+				tSoloCountHistory[key] += 1
+				# Update information about user points
 
-		# Update solo transaction counts
-		# Add new sender to dict
-		key = sender
-		if not sender in tSoloCountHistory:
-			tSoloCountHistory[key] = 1
-		# Or increment an existing counter
-		else:
-			tSoloCountHistory[key] += 1
+		# Grant points to recipient
+		if not recipient in currentPoints:
+			currentPoints[recipient] = 0
+		currentPoints[recipient] += t["amount"]
+		# Remove points from sender, unless is wangbot
+		if not sender == 'wangbot':
+			if not sender in currentPoints:
+				currentPoints[sender] = 0
+			currentPoints[sender] -= t["amount"]
+
 	return generosities
 
 def calculateTransactionGenerosity(t, tAmountHistory, tPairCountHistory, tSoloCountHistory, generosities, charityWeight=1, diversityWeight=10, rGenWeight=3, dRecipWeight=6, iRecipWeight=3):

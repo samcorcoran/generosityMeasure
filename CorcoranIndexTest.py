@@ -12,12 +12,12 @@ def generateFakeTransactionLog(n):
 		# Pick a 'from' user who has at least some points
 		fromUser = random.choice(users.keys())
 		while not users[fromUser] > 0 and not fromUser == 'wangbot':
-			print("Picking a from")
+			#print("Picking a from")
 			fromUser = random.choice(users.keys())
 		# Pick a 'to' user who is not the already selected user1
 		toUser = random.choice(users.keys())
 		while fromUser == toUser:
-			print("Picking a to")
+			#print("Picking a to")
 			toUser = random.choice(users.keys())
 		# Determine the size of the transaction
 		transactionAmount = 1
