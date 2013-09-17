@@ -37,11 +37,12 @@ def calculateGenerosities(tLog):
 
 		# Update solo transaction counts
 		# Add new sender to dict
+		key = t["from"]
 		if not t["from"] in tSoloCountHistory:
-			tSoloCountHistory[t["from"]] = 1
+			tSoloCountHistory[key] = 1
 		# Or increment an existing counter
 		else:
-			tSoloCountHistory[t["from"]] += 1
+			tSoloCountHistory[key] += 1
 	return generosities
 
 def calculateTransactionGenerosity(t, tAmountHistory, tPairCountHistory, tSoloCountHistory, charityWeight=1, diversityWeight=10, rGenWeight=3, dRecipWeight=6, iRecipWeight=3):
