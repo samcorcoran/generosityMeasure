@@ -47,8 +47,6 @@ def calculateGenerosities(tLog):
 			generosity = calculateTransactionGenerosity(t, currentPoints, economySize, totalUsers, tAmountHistory, tPairCountHistory, tSoloCountHistory, generosities)
 			# Contibute to cumulative generosity	
 			generosities[sender] += generosity
-			# Increment transaction count, so generosity can be averaged per user
-			generosities[sender] += 1
 
 			# Increase total amount sent
 			tAmountHistory[sender][recipient] += t["amount"]
