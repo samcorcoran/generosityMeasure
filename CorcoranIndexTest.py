@@ -6,6 +6,8 @@ import CorcoranIndex
 def generateFakeTransactionLog(n):
 	log = []
 	users = {'Sam': 10, 'Will': 10, 'Ben': 10, 'Andy': 10}
+	economySize = 40
+	totalUsers = 4
 	for i in xrange(n):
 		print(i)
 		# Pick a 'from' user who has at least some points
@@ -21,7 +23,7 @@ def generateFakeTransactionLog(n):
 		# Determine the size of the transaction
 		transactionAmount = random.randint(1, users[fromUser])
 		print("Transaction amount: " + str(transactionAmount))
-		log.append({'from': fromUser, 'fromPoints': users[fromUser], 'to': toUser, 'toPoints': users[toUser], 'amount': transactionAmount})
+		log.append({'from': fromUser, 'fromPoints': users[fromUser], 'to': toUser, 'toPoints': users[toUser], 'amount': transactionAmount, 'economySize': economySize, 'totalUsers': totalUsers})
 		# Updates amount
 		users[fromUser] -= transactionAmount
 		users[toUser] += transactionAmount
