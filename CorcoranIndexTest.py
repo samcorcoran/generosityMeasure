@@ -41,5 +41,7 @@ generosities, transactionCounts = CorcoranIndex.calculateGenerosities(transactio
 
 totalGenerosity = sum(generosities.values())
 for user in generosities.keys():
-	avgGenerosity = 'NA' if not user in transactionCounts else  generosities[user]/float(transactionCounts[user])
+	avgGenerosity = 'NA' 
+	if user in transactionCounts and transactionCounts[user] > 0:
+		avgGenerosity = generosities[user]/float(transactionCounts[user])
 	print("%s: \t%f (Average generosity: %s)" % (user, generosities[user]/float(totalGenerosity), avgGenerosity))
